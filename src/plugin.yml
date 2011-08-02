@@ -1,0 +1,5 @@
+name: HealingTotem
+main: tprk77.healingtotem.HealingTotemPlugin
+version: 0.1
+author: tprk77
+description: Durp, a plugin
