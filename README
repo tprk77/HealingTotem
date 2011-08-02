@@ -1,0 +1,19 @@
+I don't like pork. And I don't like eating it to gain health.
+...ok, pork is delicious, but I need motivation for this plugin.
+
+HealingTotems allows players to create totem poles that radiate healing powers.
+Once a player is in range of a totem pole they are healed a little bit at a time
+until they have full health. The properties of the healing are determined by the
+totem pole's construction.
+
+Features:
+- Fully customizable. Customize the totem's construction (block pattern), the
+  range, the power of the healing, and the rate of healing (not yet).
+- Automatically detects the creation of new totems, no commands necessary.
+  Automatically detects the destruction of a totem.
+- Give totems negative healing to make them EVIL.
+- Add environmental effects to your safe heaven or creepy dungeon.
+- It's my first plugin!
+
+For more information, refer to the Bukkit post:
+http://forums.bukkit.org/threads/wip-rpg-mech-healingtotem-v0-0-health-regeneration-from-totem-poles.28317/
