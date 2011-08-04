@@ -6,20 +6,20 @@ import tprk77.util.structure.Structure;
 
 /**
  * A Totem Pole...
- * 
+ *
  * @author tim
  */
 public class Totem extends Structure {
-	
+
 	private final TotemType totemtype;
 
 	public Totem(TotemType totemtype, Block block){
-		super(totemtype.getStructureType(), block);
+		super(totemtype.getAllStructureTypes(), block);
 		this.totemtype = totemtype;
 	}
-	
+
 	public TotemType getTotemType(){
-		return totemtype;
+		return this.totemtype;
 	}
 
 	public boolean inRange(Player player){
