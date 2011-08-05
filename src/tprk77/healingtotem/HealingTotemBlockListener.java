@@ -19,7 +19,7 @@ public class HealingTotemBlockListener extends BlockListener {
 	private final HealingTotemPlugin plugin;
 
 	enum SubstructurePolicy {ALLOWED, REPLACE, NOT_ALLOWED};
-	private SubstructurePolicy substructurepolicy;
+	private final SubstructurePolicy substructurepolicy;
 
 	public HealingTotemBlockListener(HealingTotemPlugin plugin){
 		this.plugin = plugin;

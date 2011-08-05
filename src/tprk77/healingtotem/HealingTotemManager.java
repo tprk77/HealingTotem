@@ -1,6 +1,7 @@
 package tprk77.healingtotem;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,6 +18,7 @@ import org.bukkit.util.config.Configuration;
 import org.bukkit.util.config.ConfigurationNode;
 import tprk77.healingtotem.totem.Totem;
 import tprk77.healingtotem.totem.TotemType;
+import tprk77.util.BlockHashable;
 import tprk77.util.structure.BlockOffset;
 import tprk77.util.structure.Rotator;
 import tprk77.util.structure.StructureType;
@@ -27,64 +29,22 @@ import tprk77.util.structure.StructureType;
  */
 public class HealingTotemManager {
 
-	HealingTotemPlugin plugin;
+	private final HealingTotemPlugin plugin;
 
-	private static final String TOTEM_TYPES_FILENAME = "totemtypes.yml";
-	private static final String TOTEM_FILENAME = "totems.yml";
+	private final String TOTEM_TYPES_FILENAME = "totemtypes.yml";
+	private final String TOTEM_FILENAME = "totems.yml";
+	private final String CONFIG_FILENAME = "config.yml";
 
 	private List<TotemType> totemtypes;
 	private List<Totem> totems;
 
-	HashMap<BlockHashable, Set<Totem>> bighash;
-
-	/**
-	 * Immutable and ok to use as a hash key.
-	 *
-	 * @author tim
-	 */
-	private class BlockHashable {
-
-		private final String world;
-		private final int x;
-		private final int y;
-		private final int z;
-
-		public BlockHashable(Block block){
-			this.world = block.getWorld().getName();
-			this.x = block.getX();
-			this.y = block.getY();
-			this.z = block.getZ();
-		}
-
-		@Override
-		public boolean equals(Object o){
-			if(!(o instanceof BlockHashable)) return false;
-			BlockHashable bh = (BlockHashable) o;
-			return (this.x == bh.x && this.y == bh.y && this.z == bh.z
-							&& this.world.equals(bh.world));
-		}
-
-		@Override
-		public int hashCode(){
-			int hash = 7;
-			hash = 53 * hash + (this.world != null ? this.world.hashCode() : 0);
-			hash = 53 * hash + this.x;
-			hash = 53 * hash + this.y;
-			hash = 53 * hash + this.z;
-			return hash;
-		}
-
-		@Override
-		public String toString(){
-			return "(" + this.world + ") <" + this.x + ", " + this.y + ", " + this.z + ">";
-		}
-	}
+	HashMap<BlockHashable, Set<Totem>> blockhash;
 
 	public HealingTotemManager(HealingTotemPlugin plugin){
 		this.plugin = plugin;
 		this.totemtypes = new ArrayList<TotemType>();
 		this.totems = new ArrayList<Totem>();
-		this.bighash = new HashMap<BlockHashable, Set<Totem>>();
+		this.blockhash = new HashMap<BlockHashable, Set<Totem>>();
 	}
 
 	public List<Totem> getTotems(){
@@ -97,11 +57,13 @@ public class HealingTotemManager {
 
 	public void addTotem(Totem totem){
 		this.totems.add(totem);
+
+		// add to block hash
 		for(Block block : totem.getBlocks()){
 			BlockHashable bh = new BlockHashable(block);
-			Set<Totem> existing = this.bighash.get(bh);
+			Set<Totem> existing = this.blockhash.get(bh);
 			if(existing == null){
-				this.bighash.put(bh, new HashSet<Totem>(Arrays.asList(totem)));
+				this.blockhash.put(bh, new HashSet<Totem>(Arrays.asList(totem)));
 			}else{
 				existing.add(totem);
 			}
@@ -110,19 +72,21 @@ public class HealingTotemManager {
 
 	public void removeTotem(Totem totem){
 		this.totems.remove(totem);
+
+		// remove from block hash
 		for(Block block : totem.getBlocks()){
 			BlockHashable bh = new BlockHashable(block);
-			Set<Totem> existing = this.bighash.get(bh);
+			Set<Totem> existing = this.blockhash.get(bh);
 			existing.remove(totem);
 			if(existing.isEmpty()){
-				this.bighash.remove(bh);
+				this.blockhash.remove(bh);
 			}
 		}
 	}
 
 	public Set<Totem> getTotemsFromBlock(Block block){
 		BlockHashable bh = new BlockHashable(block);
-		return this.bighash.get(bh);
+		return this.blockhash.get(bh);
 	}
 
 	public TotemType getTotemType(String name){
@@ -136,8 +100,18 @@ public class HealingTotemManager {
 
 	public void loadTotemTypes(){
 
-		Configuration conf = new Configuration(
-						new File(this.plugin.getDataFolder(), HealingTotemManager.TOTEM_TYPES_FILENAME));
+		// check if the file exists, or create it...
+		File totemtypesfile = new File(this.plugin.getDataFolder(), this.TOTEM_TYPES_FILENAME);
+		if(!totemtypesfile.isFile()){
+			try{
+				totemtypesfile.mkdirs();
+				totemtypesfile.createNewFile();
+			}catch(Exception ex){
+				this.plugin.warn("could not create file " + totemtypesfile.getName());
+			}
+		}
+
+		Configuration conf = new Configuration(totemtypesfile);
 		conf.load();
 
 		List<ConfigurationNode> nodelist = conf.getNodeList("totemtypes", new ArrayList<ConfigurationNode>());
@@ -168,8 +142,9 @@ public class HealingTotemManager {
 	}
 
 	public void loadTotems(){
-		Configuration conf = new Configuration(
-						new File(this.plugin.getDataFolder(), HealingTotemManager.TOTEM_FILENAME));
+
+		File totemsfile = new File(this.plugin.getDataFolder(), this.TOTEM_FILENAME);
+		Configuration conf = new Configuration(totemsfile);
 		conf.load();
 
 		List<ConfigurationNode> nodelist = conf.getNodeList("totems", new ArrayList<ConfigurationNode>());
@@ -187,8 +162,9 @@ public class HealingTotemManager {
 	}
 
 	public void saveTotems(){
-		Configuration conf = new Configuration(
-						new File(this.plugin.getDataFolder(), HealingTotemManager.TOTEM_FILENAME));
+
+		File totemsfile = new File(this.plugin.getDataFolder(), this.TOTEM_FILENAME);
+		Configuration conf = new Configuration(totemsfile);
 
 		List<Object> yamllist = new ArrayList<Object>();
 

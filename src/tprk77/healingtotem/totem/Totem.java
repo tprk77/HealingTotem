@@ -1,6 +1,8 @@
 package tprk77.healingtotem.totem;
 
 import org.bukkit.block.Block;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import tprk77.util.structure.Structure;
 
@@ -22,25 +24,37 @@ public class Totem extends Structure {
 		return this.totemtype;
 	}
 
-	public boolean inRange(Player player){
+	public boolean inRange(LivingEntity livingentity){
 		try{
 			double range = this.totemtype.getRange();
-			return (range * range) > this.getRootBlock().getLocation().distanceSquared(player.getLocation());
+			return this.getRootBlock().getLocation().distanceSquared(
+							livingentity.getLocation()) < (range * range);
 		}catch(IllegalArgumentException ex){
 			return false;
 		}
 	}
 
-	public void affectHealth(Player player){
-		int power = this.totemtype.getPower();
-		if(power > 0){
-			int hp = player.getHealth();
-			// BTW, 20 is full health, 0 is dead
-			if(hp < 20){
-				player.setHealth(hp + power);
-			}
-		}else if(power < 0){
-			player.damage(-power);
+	public int getEffectivePower(LivingEntity livingentity){
+
+		if(this.isPowered()){
+			return 0;
 		}
+
+		if(livingentity instanceof Player){
+			return this.totemtype.getPower();
+		}else if(livingentity instanceof Monster){
+			return -this.totemtype.getPower();
+		}else{
+			return 0;
+		}
+	}
+
+	private boolean isPowered(){
+		for(Block block : this.blocks){
+			if(block.isBlockPowered() || block.isBlockIndirectlyPowered()){
+				return true;
+			}
+		}
+		return false;
 	}
 }

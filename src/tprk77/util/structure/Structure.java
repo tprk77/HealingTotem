@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 
 /**
@@ -15,9 +16,9 @@ import org.bukkit.block.Block;
  */
 public class Structure {
 
-	private final StructureType structuretype;
-	private final Block rootblock;
-	private final Set<Block> blocks;
+	protected final StructureType structuretype;
+	protected final Block rootblock;
+	protected final Set<Block> blocks;
 
 	public Structure(StructureType possiblestructuretype, Block block){
 		this(new ArrayList<StructureType>(Arrays.asList(possiblestructuretype)), block);
@@ -63,6 +64,10 @@ public class Structure {
 	public Set<Block> getBlocks(){
 		// defend against outisde adding/removing
 		return new HashSet<Block>(this.blocks);
+	}
+
+	public World getWorld(){
+		return this.rootblock.getWorld();
 	}
 
 	public boolean containsBlock(Block block){
@@ -117,6 +122,8 @@ public class Structure {
 	}*/
 
 	/**
+	 * TODO THIS SHOULD GET MOVED INTO THE CONSTRUCTOR.
+	 *
 	 * Verify that a structure exists at this root block.
 	 *
 	 * @param rootblock The origin of the structure.
