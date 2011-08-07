@@ -4,6 +4,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Wolf;
 import tprk77.util.structure.Structure;
 
 /**
@@ -44,6 +45,14 @@ public class Totem extends Structure {
 			return this.totemtype.getPower();
 		}else if(livingentity instanceof Monster){
 			return -this.totemtype.getPower();
+		}else if(livingentity instanceof Wolf){
+			if(((Wolf)livingentity).isTamed()){
+				return this.totemtype.getPower();
+			}else if(((Wolf)livingentity).isAngry()){
+				return -this.totemtype.getPower();
+			}else{
+				return 0;
+			}
 		}else{
 			return 0;
 		}

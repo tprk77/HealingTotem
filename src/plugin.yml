@@ -1,5 +1,25 @@
 name: HealingTotem
-main: tprk77.healingtotem.HealingTotemPlugin
-version: 0.1
+main: tprk77.healingtotem.HTPlugin
+version: 0.7
 author: tprk77
-description: Durp, a plugin
+description: Health Regeneration from Totem Poles!
+permissions:
+  healingtotem.*:
+    discription: gives access to all healingtotem permissions
+    children:
+      healingtotem.build: true
+      healingtotem.break: true
+      healingtotem.heal: true
+      healingtotem.damage: true
+  healingtotem.build:
+    description: allows user to build totems
+    default: true
+  healingtotem.break:
+    description: allows user to break totems
+    default: true
+  healingtotem.heal:
+    description: allows user to be healed by totems
+    default: true
+  healingtotem.damage:
+    description: allows user to be damaged by totems
+    default: true
