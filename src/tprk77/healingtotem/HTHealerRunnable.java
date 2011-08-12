@@ -8,6 +8,9 @@ import org.bukkit.entity.Monster;
 import tprk77.healingtotem.totem.Totem;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitScheduler;
 
 /**
@@ -25,10 +28,12 @@ public class HTHealerRunnable implements Runnable {
 
 	private abstract class LivingEntityProcessor {
 
+		private final PluginManager eventcaller;
 		private final int stackedheal;
 		private final int stackeddamage;
 
-		public LivingEntityProcessor(int stackedheal, int stackeddamage){
+		public LivingEntityProcessor(PluginManager eventcaller, int stackedheal, int stackeddamage){
+			this.eventcaller = eventcaller;
 			this.stackedheal = stackedheal;
 			this.stackeddamage = stackeddamage;
 		}
@@ -52,12 +57,25 @@ public class HTHealerRunnable implements Runnable {
 				power = -this.stackeddamage;
 			}
 			if(power > 0){
-				int hp = entity.getHealth();
-				if(hp < 20){
-					entity.setHealth(hp + power);
+				EntityRegainHealthEvent regen = new EntityRegainHealthEvent(
+								entity, power, EntityRegainHealthEvent.RegainReason.CUSTOM);
+				this.eventcaller.callEvent(regen);
+				if(!regen.isCancelled()){
+					int newhealth = entity.getHealth() + regen.getAmount();
+					if(newhealth < 0){
+						newhealth = 0;
+					}else if(newhealth > 20){
+						newhealth = 20;
+					}
+					entity.setHealth(newhealth);
 				}
 			}else if(power < 0){
-				entity.damage(-power);
+				EntityDamageEvent damage = new EntityDamageEvent(
+								entity, EntityDamageEvent.DamageCause.CUSTOM, -power);
+				this.eventcaller.callEvent(damage);
+				if(!damage.isCancelled()){
+					entity.damage(damage.getDamage());
+				}
 			}
 		}
 	}
@@ -68,6 +86,7 @@ public class HTHealerRunnable implements Runnable {
 
 		if(this.plugin.getConfigManager().isPlayerAffected()){
 			LivingEntityProcessor processor = new LivingEntityProcessor(
+							this.plugin.getServer().getPluginManager(),
 							this.plugin.getConfigManager().getPlayerStackedHeal(),
 							this.plugin.getConfigManager().getPlayerStackedDamage()){
 				@Override
@@ -89,6 +108,7 @@ public class HTHealerRunnable implements Runnable {
 
 		if(this.plugin.getConfigManager().isMobAffected()){
 			LivingEntityProcessor processor = new LivingEntityProcessor(
+							this.plugin.getServer().getPluginManager(),
 							this.plugin.getConfigManager().getMobStackedHeal(),
 							this.plugin.getConfigManager().getMobStackedDamage()){
 				@Override
@@ -104,6 +124,7 @@ public class HTHealerRunnable implements Runnable {
 
 		if(this.plugin.getConfigManager().isTameWolfAffected()){
 			LivingEntityProcessor processor = new LivingEntityProcessor(
+							this.plugin.getServer().getPluginManager(),
 							this.plugin.getConfigManager().getTameWolfStackedHeal(),
 							this.plugin.getConfigManager().getTameWolfStackedDamage()){
 				@Override
@@ -119,6 +140,7 @@ public class HTHealerRunnable implements Runnable {
 
 		if(this.plugin.getConfigManager().isAngryWolfAffected()){
 			LivingEntityProcessor processor = new LivingEntityProcessor(
+							this.plugin.getServer().getPluginManager(),
 							this.plugin.getConfigManager().getAngryWolfStackedHeal(),
 							this.plugin.getConfigManager().getAngryWolfStackedDamage()){
 				@Override

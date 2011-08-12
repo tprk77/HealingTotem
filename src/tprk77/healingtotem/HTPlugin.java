@@ -2,7 +2,11 @@ package tprk77.healingtotem;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.event.Event;
+import org.bukkit.event.entity.EntityListener;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**

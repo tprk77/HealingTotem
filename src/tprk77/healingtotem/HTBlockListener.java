@@ -30,7 +30,7 @@ public class HTBlockListener extends BlockListener {
 
 	public void registerEvents(){
 		PluginManager pm = this.plugin.getServer().getPluginManager();
-		pm.registerEvent(Event.Type.BLOCK_PLACE, this, Event.Priority.Low, this.plugin);
+		pm.registerEvent(Event.Type.BLOCK_PLACE, this, Event.Priority.Normal, this.plugin);
 		pm.registerEvent(Event.Type.BLOCK_BREAK, this, Event.Priority.High, this.plugin);
 	}
 
