@@ -1,11 +1,11 @@
 name: HealingTotem
 main: tprk77.healingtotem.HTPlugin
-version: 0.7
+version: 0.8.0
 author: tprk77
 description: Health Regeneration from Totem Poles!
 permissions:
   healingtotem.*:
-    discription: gives access to all healingtotem permissions
+    discription: gives access to all normal healingtotem permissions
     children:
       healingtotem.build: true
       healingtotem.break: true
@@ -23,3 +23,6 @@ permissions:
   healingtotem.damage:
     description: allows user to be damaged by totems
     default: true
+  healingtotem.unlimitedbuild:
+    description: allows user to build an unlimited number of totems (op)
+    default: op

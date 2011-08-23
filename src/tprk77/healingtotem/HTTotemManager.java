@@ -13,6 +13,7 @@ import java.util.Set;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.util.config.Configuration;
 import org.bukkit.util.config.ConfigurationNode;
 import tprk77.healingtotem.totem.Totem;
@@ -30,20 +31,21 @@ public class HTTotemManager {
 
 	private final HTPlugin plugin;
 
-	private final String TOTEM_TYPES_FILENAME = "totemtypes.yml";
-	private final String TOTEM_FILENAME = "totems.yml";
-	private final String TOTEM_SQLITE_FILENAME = "totems.sqlite";
+	private final String totemtypes_filename = "totemtypes.yml";
+	private final String totems_filename = "totems.yml";
 
 	private List<TotemType> totemtypes;
 	private List<Totem> totems;
 
 	HashMap<BlockHashable, Set<Totem>> blockhash;
+	HashMap<String, Set<Totem>> ownerhash;
 
 	public HTTotemManager(HTPlugin plugin){
 		this.plugin = plugin;
 		this.totemtypes = new ArrayList<TotemType>();
 		this.totems = new ArrayList<Totem>();
 		this.blockhash = new HashMap<BlockHashable, Set<Totem>>();
+		this.ownerhash = new HashMap<String, Set<Totem>>();
 	}
 
 	public List<Totem> getTotems(){
@@ -67,6 +69,15 @@ public class HTTotemManager {
 				existing.add(totem);
 			}
 		}
+
+		// add to owner hash
+		String owner = totem.getOwner();
+		Set<Totem> existing = this.ownerhash.get(owner);
+		if(existing == null){
+			this.ownerhash.put(owner, new HashSet<Totem>(Arrays.asList(totem)));
+		}else{
+			existing.add(totem);
+		}
 	}
 
 	public void removeTotem(Totem totem){
@@ -81,11 +92,28 @@ public class HTTotemManager {
 				this.blockhash.remove(bh);
 			}
 		}
+
+		// remove from owner hash
+		String owner = totem.getOwner();
+		Set<Totem> existing = this.ownerhash.get(owner);
+		existing.remove(totem);
+		if(existing.isEmpty()){
+			this.ownerhash.remove(owner);
+		}
 	}
 
 	public Set<Totem> getTotemsFromBlock(Block block){
 		BlockHashable bh = new BlockHashable(block);
-		return this.blockhash.get(bh);
+		Set<Totem> totemset = this.blockhash.get(bh);
+		if(totemset == null) return null;
+		return new HashSet<Totem>(totemset);
+	}
+
+	public Set<Totem> getTotemsFromPlayer(Player player){
+		String owner = player.getName();
+		Set<Totem> totemset = this.ownerhash.get(owner);
+		if(totemset == null) return null;
+		return new HashSet<Totem>(totemset);
 	}
 
 	public TotemType getTotemType(String name){
@@ -99,7 +127,7 @@ public class HTTotemManager {
 
 	public void loadTotemTypesOrDefault(){
 
-		File totemtypesfile = new File(this.plugin.getDataFolder(), this.TOTEM_TYPES_FILENAME);
+		File totemtypesfile = new File(this.plugin.getDataFolder(), this.totemtypes_filename);
 		if(!totemtypesfile.isFile()){
 			try{
 				totemtypesfile.getParentFile().mkdirs();
@@ -115,7 +143,7 @@ public class HTTotemManager {
 
 	private void loadTotemTypes(){
 
-		File totemtypesfile = new File(this.plugin.getDataFolder(), this.TOTEM_TYPES_FILENAME);
+		File totemtypesfile = new File(this.plugin.getDataFolder(), this.totemtypes_filename);
 		Configuration conf = new Configuration(totemtypesfile);
 		conf.load();
 
@@ -148,7 +176,7 @@ public class HTTotemManager {
 
 	private void saveDefaultTotemTypes(){
 
-		File totemtypesfile = new File(this.plugin.getDataFolder(), this.TOTEM_TYPES_FILENAME);
+		File totemtypesfile = new File(this.plugin.getDataFolder(), this.totemtypes_filename);
 		Configuration conf = new Configuration(totemtypesfile);
 
 		List<Object> yamllist = new ArrayList<Object>();
@@ -223,7 +251,7 @@ public class HTTotemManager {
 
 	public void loadTotems(){
 
-		File totemsfile = new File(this.plugin.getDataFolder(), this.TOTEM_FILENAME);
+		File totemsfile = new File(this.plugin.getDataFolder(), this.totems_filename);
 		Configuration conf = new Configuration(totemsfile);
 		conf.load();
 
@@ -243,7 +271,7 @@ public class HTTotemManager {
 
 	public void saveTotems(){
 
-		File totemsfile = new File(this.plugin.getDataFolder(), this.TOTEM_FILENAME);
+		File totemsfile = new File(this.plugin.getDataFolder(), this.totems_filename);
 		Configuration conf = new Configuration(totemsfile);
 
 		List<Object> yamllist = new ArrayList<Object>();
@@ -265,6 +293,12 @@ public class HTTotemManager {
 		yamlmap.put("y", totem.getRootBlock().getY());
 		yamlmap.put("z", totem.getRootBlock().getZ());
 		yamlmap.put("type", totem.getTotemType().getName());
+
+		String owner = totem.getOwner();
+		if(totem.getOwner() != null){
+			yamlmap.put("owner", owner);
+		}
+
 		return yamlmap;
 	}
 
@@ -289,6 +323,12 @@ public class HTTotemManager {
 			return null;
 		}
 
+		String owner = node.getString("owner", null);
+		if(owner == null){
+			//this.plugin.warn("totem's owner is not set");
+			// do nothing
+		}
+
 		World world = this.plugin.getServer().getWorld(worldstr);
 		if(world == null){
 			this.plugin.warn("totem's world is not recognized");
@@ -302,7 +342,7 @@ public class HTTotemManager {
 		}
 
 		Block block = world.getBlockAt(x, y, z);
-		Totem totem = new Totem(totemtype, block);
+		Totem totem = new Totem(totemtype, block, owner);
 
 		if(!totem.verifyStructure()){
 			this.plugin.warn("totem's structure was bad");
@@ -361,6 +401,10 @@ public class HTTotemManager {
 		yamlmap.put("range", totemtype.getRange());
 		yamlmap.put("rotator", totemtype.getRotator().toString());
 		yamlmap.put("structure", this.structuretype2yaml(totemtype.getStructureType()));
+		yamlmap.put("affectsplayers", totemtype.affectsPlayers());
+		yamlmap.put("affectsmobs", totemtype.affectsMobs());
+		yamlmap.put("affectstamedwolves", totemtype.affectsTamedWolves());
+		yamlmap.put("affectsangrywolves", totemtype.affectsAngryWolves());
 		return yamlmap;
 	}
 
@@ -412,6 +456,12 @@ public class HTTotemManager {
 			return null;
 		}
 
-		return new TotemType(name, power, range, structuretype, rotator);
+		boolean affectsplayers = node.getBoolean("affectsplayers", true);
+		boolean affectsmobs = node.getBoolean("affectsmobs", true);
+		boolean affectstamedwolves = node.getBoolean("affectstamedwolves", true);
+		boolean affectsangrywolves = node.getBoolean("affectsangrywolves", true);
+
+		return new TotemType(name, power, range, structuretype, rotator,
+						affectsplayers, affectsmobs, affectstamedwolves, affectsangrywolves);
 	}
 }

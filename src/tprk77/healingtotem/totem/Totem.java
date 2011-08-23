@@ -2,9 +2,6 @@ package tprk77.healingtotem.totem;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Monster;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Wolf;
 import tprk77.util.structure.Structure;
 
 /**
@@ -15,14 +12,24 @@ import tprk77.util.structure.Structure;
 public class Totem extends Structure {
 
 	private final TotemType totemtype;
+	private final String owner;
 
 	public Totem(TotemType totemtype, Block block){
+		this(totemtype, block, null);
+	}
+
+	public Totem(TotemType totemtype, Block block, String owner){
 		super(totemtype.getAllStructureTypes(), block);
 		this.totemtype = totemtype;
+		this.owner = owner;
 	}
 
 	public TotemType getTotemType(){
 		return this.totemtype;
+	}
+
+	public String getOwner(){
+		return this.owner;
 	}
 
 	public boolean inRange(LivingEntity livingentity){
@@ -41,21 +48,7 @@ public class Totem extends Structure {
 			return 0;
 		}
 
-		if(livingentity instanceof Player){
-			return this.totemtype.getPower();
-		}else if(livingentity instanceof Monster){
-			return -this.totemtype.getPower();
-		}else if(livingentity instanceof Wolf){
-			if(((Wolf)livingentity).isTamed()){
-				return this.totemtype.getPower();
-			}else if(((Wolf)livingentity).isAngry()){
-				return -this.totemtype.getPower();
-			}else{
-				return 0;
-			}
-		}else{
-			return 0;
-		}
+		return this.totemtype.getEffectivePower(livingentity);
 	}
 
 	private boolean isPowered(){

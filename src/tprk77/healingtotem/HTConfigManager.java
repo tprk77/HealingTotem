@@ -13,12 +13,17 @@ public class HTConfigManager {
 
 	private final HTPlugin plugin;
 
-	private final String CONFIG_FILENAME = "config.yml";
+	private final String filename = "config.yml";
 
-	private boolean playeraffected;
-	private boolean mobaffected;
-	private boolean tamewolfaffected;
-	private boolean angrywolfaffected;
+	private final int def_totemsperplayer = 100;
+	private final boolean def_lightning = true;
+	private final boolean def_quiet = false;
+	private final int def_stackedheal = 4;
+	private final int def_stackeddamage = 4;
+
+	private int totemsperplayer;
+	private boolean lightning;
+	private boolean quiet;
 
 	private int playerstackedheal;
 	private int playerstackeddamage;
@@ -26,8 +31,8 @@ public class HTConfigManager {
 	private int mobstackedheal;
 	private int mobstackeddamage;
 
-	private int tamewolfstackedheal;
-	private int tamewolfstackeddamage;
+	private int tamedwolfstackedheal;
+	private int tamedwolfstackeddamage;
 
 	private int angrywolfstackedheal;
 	private int angrywolfstackeddamage;
@@ -38,7 +43,7 @@ public class HTConfigManager {
 
 	public void loadConfigOrDefault(){
 
-		File configfile = new File(this.plugin.getDataFolder(), this.CONFIG_FILENAME);
+		File configfile = new File(this.plugin.getDataFolder(), this.filename);
 		if(!configfile.isFile()){
 			try{
 				configfile.getParentFile().mkdirs();
@@ -54,105 +59,97 @@ public class HTConfigManager {
 
 	private void loadConfig(){
 
-		File configfile = new File(this.plugin.getDataFolder(), this.CONFIG_FILENAME);
+		File configfile = new File(this.plugin.getDataFolder(), this.filename);
 		Configuration conf = new Configuration(configfile);
 		conf.load();
 
 		ConfigurationNode node;
 
+		this.totemsperplayer = conf.getInt("totemsperplayer", this.totemsperplayer);
+		this.lightning = conf.getBoolean("lightning", this.def_lightning);
+		this.quiet = conf.getBoolean("quiet", this.def_quiet);
+
 		node = conf.getNode("player");
 		if(node != null){
-			this.playeraffected = node.getBoolean("affected", true);
-			this.playerstackedheal = node.getInt("stackedheal", 4);
-			this.playerstackeddamage = node.getInt("stackeddamage", 4);
+			this.playerstackedheal = node.getInt("stackedheal", this.def_stackedheal);
+			this.playerstackeddamage = node.getInt("stackeddamage", this.def_stackeddamage);
 		}else{
-			this.playeraffected = true;
-			this.playerstackedheal = 4;
-			this.playerstackeddamage = 4;
+			this.playerstackedheal = this.def_stackedheal;
+			this.playerstackeddamage = this.def_stackeddamage;
 		}
 
 		node = conf.getNode("mob");
 		if(node != null){
-			this.mobaffected = node.getBoolean("affected", true);
-			this.mobstackedheal = node.getInt("stackedheal", 4);
-			this.mobstackeddamage = node.getInt("stackeddamage", 4);
+			this.mobstackedheal = node.getInt("stackedheal", this.def_stackedheal);
+			this.mobstackeddamage = node.getInt("stackeddamage", this.def_stackeddamage);
 		}else{
-			this.mobaffected = true;
-			this.mobstackedheal = 4;
-			this.mobstackeddamage = 4;
+			this.mobstackedheal = this.def_stackedheal;
+			this.mobstackeddamage = this.def_stackeddamage;
 		}
 
-		node = conf.getNode("tamewolf");
+		node = conf.getNode("tamedwolf");
 		if(node != null){
-			this.tamewolfaffected = node.getBoolean("affected", true);
-			this.tamewolfstackedheal = node.getInt("stackedheal", 4);
-			this.tamewolfstackeddamage = node.getInt("stackeddamage", 4);
+			this.tamedwolfstackedheal = node.getInt("stackedheal", this.def_stackedheal);
+			this.tamedwolfstackeddamage = node.getInt("stackeddamage", this.def_stackeddamage);
 		}else{
-			this.tamewolfaffected = true;
-			this.tamewolfstackedheal = 4;
-			this.tamewolfstackeddamage = 4;
+			this.tamedwolfstackedheal = this.def_stackedheal;
+			this.tamedwolfstackeddamage = this.def_stackeddamage;
 		}
 
 		node = conf.getNode("angrywolf");
 		if(node != null){
-			this.angrywolfaffected = node.getBoolean("affected", true);
-			this.angrywolfstackedheal = node.getInt("stackedheal", 4);
-			this.angrywolfstackeddamage = node.getInt("stackeddamage", 4);
+			this.angrywolfstackedheal = node.getInt("stackedheal", this.def_stackedheal);
+			this.angrywolfstackeddamage = node.getInt("stackeddamage", this.def_stackeddamage);
 		}else{
-			this.angrywolfaffected = true;
-			this.angrywolfstackedheal = 4;
-			this.angrywolfstackeddamage = 4;
+			this.angrywolfstackedheal = this.def_stackedheal;
+			this.angrywolfstackeddamage = this.def_stackeddamage;
 		}
 	}
 
 	private void saveDefaultConfig(){
 
-		File configfile = new File(this.plugin.getDataFolder(), this.CONFIG_FILENAME);
+		File configfile = new File(this.plugin.getDataFolder(), this.filename);
 		Configuration conf = new Configuration(configfile);
 
 		HashMap<String, Object> yamlmap = new HashMap<String, Object>();
 
+		conf.setProperty("totemsperplayer", this.def_totemsperplayer);
+		conf.setProperty("lightning", this.def_lightning);
+		conf.setProperty("quiet", this.def_quiet);
+
 		yamlmap = new HashMap<String, Object>();
-		yamlmap.put("affected", true);
-		yamlmap.put("stackedheal", 4);
-		yamlmap.put("stackeddamage", 4);
+		yamlmap.put("stackedheal", this.def_stackedheal);
+		yamlmap.put("stackeddamage", this.def_stackeddamage);
 		conf.setProperty("player", yamlmap);
 
 		yamlmap = new HashMap<String, Object>();
-		yamlmap.put("affected", true);
-		yamlmap.put("stackedheal", 4);
-		yamlmap.put("stackeddamage", 4);
+		yamlmap.put("stackedheal", this.def_stackedheal);
+		yamlmap.put("stackeddamage", this.def_stackeddamage);
 		conf.setProperty("mob", yamlmap);
 
 		yamlmap = new HashMap<String, Object>();
-		yamlmap.put("affected", true);
-		yamlmap.put("stackedheal", 4);
-		yamlmap.put("stackeddamage", 4);
-		conf.setProperty("tamewolf", yamlmap);
+		yamlmap.put("stackedheal", this.def_stackedheal);
+		yamlmap.put("stackeddamage", this.def_stackeddamage);
+		conf.setProperty("tamedwolf", yamlmap);
 
 		yamlmap = new HashMap<String, Object>();
-		yamlmap.put("affected", true);
-		yamlmap.put("stackedheal", 4);
-		yamlmap.put("stackeddamage", 4);
+		yamlmap.put("stackedheal", this.def_stackedheal);
+		yamlmap.put("stackeddamage", this.def_stackeddamage);
 		conf.setProperty("angrywolf", yamlmap);
 
 		conf.save();
 	}
 
-	public boolean isPlayerAffected(){
-		return this.playeraffected;
+	public boolean isLightning(){
+		return this.lightning;
 	}
 
-	public boolean isMobAffected(){
-		return this.mobaffected;
+	public boolean isQuiet(){
+		return this.quiet;
 	}
 
-	public boolean isTameWolfAffected(){
-		return this.tamewolfaffected;
-	}
-
-	public boolean isAngryWolfAffected(){
-		return this.angrywolfaffected;
+	public int getTotemsPerPlayer(){
+		return this.totemsperplayer;
 	}
 
 	public int getPlayerStackedHeal(){
@@ -163,8 +160,8 @@ public class HTConfigManager {
 		return this.mobstackedheal;
 	}
 
-	public int getTameWolfStackedHeal(){
-		return this.tamewolfstackedheal;
+	public int getTamedWolfStackedHeal(){
+		return this.tamedwolfstackedheal;
 	}
 
 	public int getAngryWolfStackedHeal(){
@@ -176,14 +173,14 @@ public class HTConfigManager {
 	}
 
 	public int getMobStackedDamage(){
-		return this.playerstackeddamage;
+		return this.mobstackeddamage;
 	}
 
-	public int getTameWolfStackedDamage(){
-		return this.playerstackeddamage;
+	public int getTamedWolfStackedDamage(){
+		return this.tamedwolfstackeddamage;
 	}
 
 	public int getAngryWolfStackedDamage(){
-		return this.playerstackeddamage;
+		return this.angrywolfstackeddamage;
 	}
 }
