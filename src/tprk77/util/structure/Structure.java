@@ -1,7 +1,5 @@
 package tprk77.util.structure;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +18,14 @@ public class Structure {
 	protected final Block rootblock;
 	protected final Set<Block> blocks;
 
-	public Structure(StructureType possiblestructuretype, Block block){
-		this(new ArrayList<StructureType>(Arrays.asList(possiblestructuretype)), block);
-	}
-
+	/**
+	 * Create a structure, by searching for a structure type.
+	 *
+	 * @param structuretypes A list of structure types to search for.
+	 * @param block Where to start the search. This could be any block in the
+	 * structure, or the "root" block with offset <0, 0, 0> (which is not
+	 * necessarily part of the structure).
+	 */
 	public Structure(List<StructureType> structuretypes, Block block){
 
 		for(StructureType possiblestructuretype : structuretypes){
@@ -44,6 +46,16 @@ public class Structure {
 						this.blocks = possibleblocks;
 						return;
 					}
+				}
+			}else{
+				// block might be the root block which is not part of the structure
+				Set<Block> possibleblocks = this.verifyStructure(possiblestructuretype, block);
+
+				if(possibleblocks != null){
+					this.structuretype = possiblestructuretype;
+					this.rootblock = block;
+					this.blocks = possibleblocks;
+					return;
 				}
 			}
 		}

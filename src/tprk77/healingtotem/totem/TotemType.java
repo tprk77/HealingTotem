@@ -1,9 +1,11 @@
 package tprk77.healingtotem.totem;
 
 import java.util.List;
+import org.bukkit.entity.Ghast;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Slime;
 import org.bukkit.entity.Wolf;
 import tprk77.util.structure.Rotator;
 import tprk77.util.structure.StructureType;
@@ -63,7 +65,7 @@ public final class TotemType {
 	public int getEffectivePower(LivingEntity entity){
 		if(entity instanceof Player){
 			return this.affectsplayers ? this.power : 0;
-		}else if(entity instanceof Monster){
+		}else if(entity instanceof Monster || entity instanceof Slime || entity instanceof Ghast){
 			return this.affectsmobs ? -this.power : 0;
 		}else if(entity instanceof Wolf){
 			if(((Wolf)entity).isTamed()){

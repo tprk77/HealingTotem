@@ -3,9 +3,11 @@ package tprk77.healingtotem;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.World;
+import org.bukkit.entity.Ghast;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Slime;
 import org.bukkit.entity.Wolf;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
@@ -107,6 +109,7 @@ public class HTHealerRunnable implements Runnable {
 
 		LivingEntityProcessor processor;
 
+		// for players
 		processor = new LivingEntityProcessor(
 						this.plugin.getServer().getPluginManager(),
 						this.plugin.getConfigManager().getPlayerStackedHeal(),
@@ -128,6 +131,7 @@ public class HTHealerRunnable implements Runnable {
 		};
 		this.processors.add(processor);
 
+		// for monsters
 		processor = new LivingEntityProcessor(
 						this.plugin.getServer().getPluginManager(),
 						this.plugin.getConfigManager().getMobStackedHeal(),
@@ -143,6 +147,87 @@ public class HTHealerRunnable implements Runnable {
 		};
 		this.processors.add(processor);
 
+		// ghasts are not technically monsters, but they are now...
+		processor = new LivingEntityProcessor(
+						this.plugin.getServer().getPluginManager(),
+						this.plugin.getConfigManager().getMobStackedHeal(),
+						this.plugin.getConfigManager().getMobStackedDamage(),
+						10){
+			@Override
+			public boolean process(LivingEntity entity, List<Totem> totems){
+				if(!(entity instanceof Ghast)) return false;
+				int power = this.sumTotemEffectivePower(entity, totems);
+				this.applyHeal(entity, power);
+				return true;
+			}
+		};
+		this.processors.add(processor);
+
+		// for huge slimes (and bigger)
+		processor = new LivingEntityProcessor(
+						this.plugin.getServer().getPluginManager(),
+						this.plugin.getConfigManager().getMobStackedHeal(),
+						this.plugin.getConfigManager().getMobStackedDamage(),
+						32){
+			@Override
+			public boolean process(LivingEntity entity, List<Totem> totems){
+				if(!(entity instanceof Slime && ((Slime)entity).getSize() >= 8)) return false;
+				int power = this.sumTotemEffectivePower(entity, totems);
+				this.applyHeal(entity, power);
+				return true;
+			}
+		};
+		this.processors.add(processor);
+
+		// for big slimes
+		processor = new LivingEntityProcessor(
+						this.plugin.getServer().getPluginManager(),
+						this.plugin.getConfigManager().getMobStackedHeal(),
+						this.plugin.getConfigManager().getMobStackedDamage(),
+						16){
+			@Override
+			public boolean process(LivingEntity entity, List<Totem> totems){
+				if(!(entity instanceof Slime && ((Slime)entity).getSize() >= 4 && ((Slime)entity).getSize() < 8)) return false;
+				int power = this.sumTotemEffectivePower(entity, totems);
+				this.applyHeal(entity, power);
+				return true;
+			}
+		};
+		this.processors.add(processor);
+
+		// for small slimes
+		processor = new LivingEntityProcessor(
+						this.plugin.getServer().getPluginManager(),
+						this.plugin.getConfigManager().getMobStackedHeal(),
+						this.plugin.getConfigManager().getMobStackedDamage(),
+						4){
+			@Override
+			public boolean process(LivingEntity entity, List<Totem> totems){
+				if(!(entity instanceof Slime && ((Slime)entity).getSize() >= 2 && ((Slime)entity).getSize() < 4)) return false;
+				int power = this.sumTotemEffectivePower(entity, totems);
+				this.applyHeal(entity, power);
+				return true;
+			}
+		};
+		this.processors.add(processor);
+
+		// for tiny slimes
+		processor = new LivingEntityProcessor(
+						this.plugin.getServer().getPluginManager(),
+						this.plugin.getConfigManager().getMobStackedHeal(),
+						this.plugin.getConfigManager().getMobStackedDamage(),
+						1){
+			@Override
+			public boolean process(LivingEntity entity, List<Totem> totems){
+				if(!(entity instanceof Slime && ((Slime)entity).getSize() < 2)) return false;
+				int power = this.sumTotemEffectivePower(entity, totems);
+				this.applyHeal(entity, power);
+				return true;
+			}
+		};
+		this.processors.add(processor);
+
+		// for tamed wolves
 		processor = new LivingEntityProcessor(
 						this.plugin.getServer().getPluginManager(),
 						this.plugin.getConfigManager().getTamedWolfStackedHeal(),
@@ -158,6 +243,7 @@ public class HTHealerRunnable implements Runnable {
 		};
 		this.processors.add(processor);
 
+		// for angry wolves
 		processor = new LivingEntityProcessor(
 						this.plugin.getServer().getPluginManager(),
 						this.plugin.getConfigManager().getAngryWolfStackedHeal(),

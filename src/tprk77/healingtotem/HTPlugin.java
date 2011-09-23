@@ -2,11 +2,7 @@ package tprk77.healingtotem;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bukkit.event.Event;
-import org.bukkit.event.entity.EntityListener;
-import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -17,10 +13,10 @@ public final class HTPlugin extends JavaPlugin {
 
 	private static final Logger log = Logger.getLogger("Minecraft");
 
-	HTConfigManager configmanager;
-	HTTotemManager totemmanager;
-	HTBlockListener blocklistener;
-	HTHealerRunnable healerrunnable;
+	private HTConfigManager configmanager;
+	private HTTotemManager totemmanager;
+	private HTBlockListener blocklistener;
+	private HTHealerRunnable healerrunnable;
 
 	@Override
 	public void onEnable(){
@@ -65,7 +61,7 @@ public final class HTPlugin extends JavaPlugin {
 
 	public void log(Level level, String message){
 		PluginDescriptionFile desc = this.getDescription();
-		HTPlugin.log.log(level, desc.getName() + " v" + desc.getVersion() + ": " + message);
+		HTPlugin.log.log(level, "[" + desc.getName() + " v" + desc.getVersion() + "] " + message);
 	}
 
 	public void warn(String message){
